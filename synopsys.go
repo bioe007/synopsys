@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/bioe007/synopsys/cpu"
+	"github.com/bioe007/synopsys/disk"
 	"github.com/bioe007/synopsys/load"
 	"github.com/bioe007/synopsys/memory"
 )
@@ -24,5 +25,11 @@ func main() {
 		log.Fatal("Load average failure", err)
 	}
 	fmt.Printf("LOAD %+v\n", load)
+
+	disks, err := disk.GetDiskStats()
+	if err != nil {
+		log.Fatal("disk average failure", err)
+	}
+	fmt.Println("Got disks: ", len(disks))
 
 }

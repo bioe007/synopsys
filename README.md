@@ -36,9 +36,12 @@ These are the parameters I'd like to show
 -  _wonders_ any way to make mpstat type of info here?
 - Number of processes: run|able, sleep, unint sleep, zombies
 - 'Errors' from dmesg and ~ dmesg | tail (or journalctl -b | tail)
-- Memory: free/used
-- Swap: free/used
+- Memory: free/used (proc/meminfo)
+- Swap: free/used (proc/meminfo)
 - Disk activity: rw/wr in MBs and queue size
+  - /proc/diskstats
+  - /proc/partitions
+  - [/proc/diskstats](https://www.kernel.org/doc/html/latest/admin-guide/iostats.html)
 - Network In/Out (per device?)
 - connections - active, passive, trans/retrans stats
 - top 'few' processes consuming CPU | memory
@@ -53,4 +56,5 @@ though
 ## References
 
 - [/proc/loadavg](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/4/html/reference_guide/s2-proc-loadavg)
+
 
