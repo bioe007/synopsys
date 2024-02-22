@@ -140,6 +140,8 @@ func Getmeminfo() (*Meminfo, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer memfile.Close()
+
 	c := csv.NewReader(memfile)
 	c.Comma = ':'
 	m := new(Meminfo)
