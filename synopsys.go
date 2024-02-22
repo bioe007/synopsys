@@ -1,7 +1,16 @@
 package main
 
-import "github.com/zohagen/synopsys/memory"
+import (
+	"fmt"
+	"log"
+
+	"github.com/bioe007/synopsys/memory"
+)
 
 func main() {
-	memory.Meminfo()
+	m, err := memory.Getmeminfo()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("mem struct ${##v}", m)
 }

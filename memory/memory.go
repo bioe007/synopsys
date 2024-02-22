@@ -2,7 +2,6 @@ package memory
 
 import (
 	"encoding/csv"
-	"fmt"
 	"io"
 	"log"
 	"os"
@@ -12,7 +11,7 @@ import (
 
 const MEMINFO_MAX = 57
 
-type mem struct {
+type Meminfo struct {
 	MemTotal          int
 	MemFree           int
 	MemAvailable      int
@@ -72,10 +71,10 @@ type mem struct {
 	DirectMap1G       int
 }
 
-type MemInfo int
+type MemInfoFileLine int
 
 const (
-	MEMMemTotal MemInfo = 0 << iota
+	MEMMemTotal MemInfoFileLine = 0 << iota
 	MEMMemFree
 	MEMMemAvailable
 	MEMBuffers
@@ -134,7 +133,7 @@ const (
 	MEMDirectMap1G
 )
 
-func Meminfo() {
+func Getmeminfo() (*Meminfo, error) {
 
 	memfile, err := os.Open("/proc/meminfo")
 	// memfile, err := os.Open("./meminfo_test.txt")
@@ -143,8 +142,8 @@ func Meminfo() {
 	}
 	c := csv.NewReader(memfile)
 	c.Comma = ':'
-	m := new(mem)
-	var i MemInfo
+	m := new(Meminfo)
+	var i MemInfoFileLine
 	for i = MEMMemTotal; i < MEMINFO_MAX; i++ {
 		rec, err := c.Read()
 		if err == io.EOF {
@@ -449,6 +448,7 @@ func Meminfo() {
 			log.Println("Unkown field, not parsing ", rec)
 		}
 	}
-	fmt.Println("mem struct", m)
+
+	return m, nil
 
 }
