@@ -11,7 +11,7 @@ The goal is to create an overview of a system. Instead of running:
 - sar DEV, TCP, ETCP
 - top
 
-Show the critical parts from each of those in legible fashion with a
+Show the _critical_ parts from each of those in legible fashion with a
 single command.
 
 Some might say this breaks the one-tool philosophy but i disagree, this
@@ -26,3 +26,25 @@ that might not be available to a sysadmin during a critical outage I'm
 favoring something that's easy to build/store/distribute as a single
 binary so even if it's not resident on a struggling system a simple the
 tool is only a simple `scp synopsys` away
+
+
+## Critical Parts
+These are the parameters I'd like to show 
+
+- Uptime 
+- CPU: cores, overall % useage, then % sys, usr, guest, ...
+-  _wonders_ any way to make mpstat type of info here?
+- Number of processes: run|able, sleep, unint sleep, zombies
+- 'Errors' from dmesg and ~ dmesg | tail (or journalctl -b | tail)
+- Memory: free/used
+- Swap: free/used
+- Disk activity: rw/wr in MBs and queue size
+- Network In/Out (per device?)
+- connections - active, passive, trans/retrans stats
+- top 'few' processes consuming CPU | memory
+
+## Display 
+
+initially this will just output some rolling format. will have to think
+about something like a tui to properly place things for readability
+though
