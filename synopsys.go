@@ -14,15 +14,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("mem struct ${##v}", m)
+	fmt.Printf("MEMORY %+v\n", m)
 
 	cpuinf, err := cpu.GetCPUStats()
-	fmt.Println("cpu struct ${##v}", cpuinf)
+	fmt.Printf("CPU %+v\n", cpuinf)
 
 	load, err := load.GetLoadAvg()
 	if err != nil {
 		log.Fatal("Load average failure", err)
 	}
-	fmt.Println("Load average stuff", load)
+	fmt.Printf("LOAD %+v\n", load)
 
 }
