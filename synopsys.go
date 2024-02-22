@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/bioe007/synopsys/cpu"
+	"github.com/bioe007/synopsys/load"
 	"github.com/bioe007/synopsys/memory"
 )
 
@@ -17,4 +18,11 @@ func main() {
 
 	cpuinf, err := cpu.GetCPUStats()
 	fmt.Println("cpu struct ${##v}", cpuinf)
+
+	load, err := load.GetLoadAvg()
+	if err != nil {
+		log.Fatal("Load average failure", err)
+	}
+	fmt.Println("Load average stuff", load)
+
 }

@@ -48,3 +48,9 @@ These are the parameters I'd like to show
 initially this will just output some rolling format. will have to think
 about something like a tui to properly place things for readability
 though
+
+
+## References
+
+- [/proc/loadavg](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/4/html/reference_guide/s2-proc-loadavg)
+
