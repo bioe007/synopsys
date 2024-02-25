@@ -11,6 +11,7 @@ import (
 
 const MEMINFO_MAX = 57
 
+// something in a comment
 type Meminfo struct {
 	MemTotal          int
 	MemFree           int
@@ -74,7 +75,7 @@ type Meminfo struct {
 type MemInfoFileLine int
 
 const (
-	MEMMemTotal MemInfoFileLine = 0 << iota
+	MEMMemTotal MemInfoFileLine = iota
 	MEMMemFree
 	MEMMemAvailable
 	MEMBuffers
@@ -160,288 +161,288 @@ func Getmeminfo() (*Meminfo, error) {
 		if err != nil {
 			log.Fatal("can't convert value", err)
 		}
-		switch rec[0] {
-		case "MemTotal":
+		switch i {
+		case MEMMemTotal:
 			m.MemTotal = value
 			if err != nil {
 				log.Fatal("Unable to parse MemTotal", err)
 			}
-		case "MemFree":
+		case MEMMemFree:
 			m.MemFree = value
 			if err != nil {
 				log.Fatal("Unable to parse MemFree", err)
 			}
-		case "MemAvailable":
+		case MEMMemAvailable:
 			m.MemAvailable = value
 			if err != nil {
 				log.Fatal("Unable to parse MemAvailable", err)
 			}
-		case "Buffers":
+		case MEMBuffers:
 			m.Buffers = value
 			if err != nil {
 				log.Fatal("Unable to parse Buffers", err)
 			}
-		case "Cached":
+		case MEMCached:
 			m.Cached = value
 			if err != nil {
 				log.Fatal("Unable to parse Cached", err)
 			}
-		case "SwapCached":
+		case MEMSwapCached:
 			m.SwapCached = value
 			if err != nil {
 				log.Fatal("Unable to parse SwapCached", err)
 			}
-		case "Active":
+		case MEMActive:
 			m.Active = value
 			if err != nil {
 				log.Fatal("Unable to parse Active", err)
 			}
-		case "Inactive":
+		case MEMInactive:
 			m.Inactive = value
 			if err != nil {
 				log.Fatal("Unable to parse Inactive", err)
 			}
-		case "Active(anon)":
+		case MEMActive_anon:
 			m.Active_anon = value
 			if err != nil {
 				log.Fatal("Unable to parse Active_anon", err)
 			}
-		case "Inactive(anon)":
+		case MEMInactive_anon:
 			m.Inactive_anon = value
 			if err != nil {
 				log.Fatal("Unable to parse Inactive_anon", err)
 			}
-		case "Active(file)":
+		case MEMActive_file:
 			m.Active_file = value
 			if err != nil {
 				log.Fatal("Unable to parse Active_file", err)
 			}
-		case "Inactive(file)":
+		case MEMInactive_file:
 			m.Inactive_file = value
 			if err != nil {
 				log.Fatal("Unable to parse Inactive_file", err)
 			}
-		case "Unevictable":
+		case MEMUnevictable:
 			m.Unevictable = value
 			if err != nil {
 				log.Fatal("Unable to parse Unevictable", err)
 			}
-		case "Mlocked":
+		case MEMMlocked:
 			m.Mlocked = value
 			if err != nil {
 				log.Fatal("Unable to parse Mlocked", err)
 			}
-		case "SwapTotal":
+		case MEMSwapTotal:
 			m.SwapTotal = value
 			if err != nil {
 				log.Fatal("Unable to parse SwapTotal", err)
 			}
-		case "SwapFree":
+		case MEMSwapFree:
 			m.SwapFree = value
 			if err != nil {
 				log.Fatal("Unable to parse SwapFree", err)
 			}
-		case "Zswap":
+		case MEMZswap:
 			m.Zswap = value
 			if err != nil {
 				log.Fatal("Unable to parse Zswap", err)
 			}
-		case "Zswapped":
+		case MEMZswapped:
 			m.Zswapped = value
 			if err != nil {
 				log.Fatal("Unable to parse Zswapped", err)
 			}
-		case "Dirty":
+		case MEMDirty:
 			m.Dirty = value
 			if err != nil {
 				log.Fatal("Unable to parse Dirty", err)
 			}
-		case "Writeback":
+		case MEMWriteback:
 			m.Writeback = value
 			if err != nil {
 				log.Fatal("Unable to parse Writeback", err)
 			}
-		case "AnonPages":
+		case MEMAnonPages:
 			m.AnonPages = value
 			if err != nil {
 				log.Fatal("Unable to parse AnonPages", err)
 			}
-		case "Mapped":
+		case MEMMapped:
 			m.Mapped = value
 			if err != nil {
 				log.Fatal("Unable to parse Mapped", err)
 			}
-		case "Shmem":
+		case MEMShmem:
 			m.Shmem = value
 			if err != nil {
 				log.Fatal("Unable to parse Shmem", err)
 			}
-		case "KReclaimable":
+		case MEMKReclaimable:
 			m.KReclaimable = value
 			if err != nil {
 				log.Fatal("Unable to parse KReclaimable", err)
 			}
-		case "Slab":
+		case MEMSlab:
 			m.Slab = value
 			if err != nil {
 				log.Fatal("Unable to parse Slab", err)
 			}
-		case "SReclaimable":
+		case MEMSReclaimable:
 			m.SReclaimable = value
 			if err != nil {
 				log.Fatal("Unable to parse SReclaimable", err)
 			}
-		case "SUnreclaim":
+		case MEMSUnreclaim:
 			m.SUnreclaim = value
 			if err != nil {
 				log.Fatal("Unable to parse SUnreclaim", err)
 			}
-		case "KernelStack":
+		case MEMKernelStack:
 			m.KernelStack = value
 			if err != nil {
 				log.Fatal("Unable to parse KernelStack", err)
 			}
-		case "PageTables":
+		case MEMPageTables:
 			m.PageTables = value
 			if err != nil {
 				log.Fatal("Unable to parse PageTables", err)
 			}
-		case "SecPageTables":
+		case MEMSecPageTables:
 			m.SecPageTables = value
 			if err != nil {
 				log.Fatal("Unable to parse SecPageTables", err)
 			}
-		case "NFS_Unstable":
+		case MEMNFS_Unstable:
 			m.NFS_Unstable = value
 			if err != nil {
 				log.Fatal("Unable to parse NFS_Unstable", err)
 			}
-		case "Bounce":
+		case MEMBounce:
 			m.Bounce = value
 			if err != nil {
 				log.Fatal("Unable to parse Bounce", err)
 			}
-		case "WritebackTmp":
+		case MEMWritebackTmp:
 			m.WritebackTmp = value
 			if err != nil {
 				log.Fatal("Unable to parse WritebackTemp", err)
 			}
-		case "CommitLimit":
+		case MEMCommitLimit:
 			m.CommitLimit = value
 			if err != nil {
 				log.Fatal("Unable to parse CommitLimit", err)
 			}
-		case "Committed_AS":
+		case MEMCommitted_AS:
 			m.Committed_AS = value
 			if err != nil {
 				log.Fatal("Unable to parse CommitLimit_AS", err)
 			}
-		case "VmallocTotal":
+		case MEMVmallocTotal:
 			m.VmallocTotal = value
 			if err != nil {
 				log.Fatal("Unable to parse VmallocTotal", err)
 			}
-		case "VmallocUsed":
+		case MEMVmallocUsed:
 			m.VmallocUsed = value
 			if err != nil {
 				log.Fatal("Unable to parse VmallocUsed", err)
 			}
-		case "VmallocChunk":
+		case MEMVmallocChunk:
 			m.VmallocChunk = value
 			if err != nil {
 				log.Fatal("Unable to parse VmallocChunk", err)
 			}
-		case "Percpu":
+		case MEMPercpu:
 			m.Percpu = value
 			if err != nil {
 				log.Fatal("Unable to parse Percpu", err)
 			}
-		case "HardwareCorrupted":
+		case MEMHardwareCorrupted:
 			m.HardwareCorrupted = value
 			if err != nil {
 				log.Fatal("Unable to parse HardwareCorrupted", err)
 			}
-		case "AnonHugePages":
+		case MEMAnonHugePages:
 			m.AnonHugePages = value
 			if err != nil {
 				log.Fatal("Unable to parse AnonHugePages", err)
 			}
-		case "ShmemHugePages":
+		case MEMShmemHugePages:
 			m.ShmemHugePages = value
 			if err != nil {
 				log.Fatal("Unable to parse ShmemHugePages", err)
 			}
-		case "ShmemPmdMapped":
+		case MEMShmemPmdMapped:
 			m.ShmemPmdMapped = value
 			if err != nil {
 				log.Fatal("Unable to parse ShmemPmdMapped", err)
 			}
-		case "FileHugePages":
+		case MEMFileHugePages:
 			m.FileHugePages = value
 			if err != nil {
 				log.Fatal("Unable to parse FileHugePages", err)
 			}
-		case "FilePmdMapped":
+		case MEMFilePmdMapped:
 			m.FilePmdMapped = value
 			if err != nil {
 				log.Fatal("Unable to parse FilePmdMapped", err)
 			}
-		case "CmaTotal":
+		case MEMCmaTotal:
 			m.CmaTotal = value
 			if err != nil {
 				log.Fatal("Unable to parse CmaTotal", err)
 			}
-		case "CmaFree":
+		case MEMCmaFree:
 			m.CmaFree = value
 			if err != nil {
 				log.Fatal("Unable to parse CmaFree", err)
 			}
-		case "Unaccepted":
+		case MEMUnaccepted:
 			m.Unaccepted = value
 			if err != nil {
 				log.Fatal("Unable to parse Unaccepted", err)
 			}
-		case "HugePages_Total":
+		case MEMHugePages_Total:
 			m.HugePages_Total = value
 			if err != nil {
 				log.Fatal("Unable to parse HugePages_Total", err)
 			}
-		case "HugePages_Free":
+		case MEMHugePages_Free:
 			m.HugePages_Free = value
 			if err != nil {
 				log.Fatal("Unable to parse HugePages_Free", err)
 			}
-		case "HugePages_Rsvd":
+		case MEMHugePages_Rsvd:
 			m.HugePages_Rsvd = value
 			if err != nil {
 				log.Fatal("Unable to parse HugePages_Rsvd", err)
 			}
-		case "HugePages_Surp":
+		case MEMHugePages_Surp:
 			m.HugePages_Surp = value
 			if err != nil {
 				log.Fatal("Unable to parse HugePages_Surp", err)
 			}
-		case "Hugepagesize":
+		case MEMHugepagesize:
 			m.Hugepagesize = value
 			if err != nil {
 				log.Fatal("Unable to parse Hugepagesize", err)
 			}
-		case "Hugetlb":
+		case MEMHugetlb:
 			m.Hugetlb = value
 			if err != nil {
 				log.Fatal("Unable to parse Hugetlb", err)
 			}
-		case "DirectMap4k":
+		case MEMDirectMap4k:
 			m.DirectMap4k = value
 			if err != nil {
 				log.Fatal("Unable to parse DirectMap4k", err)
 			}
-		case "DirectMap2M":
+		case MEMDirectMap2M:
 			m.DirectMap2M = value
 			if err != nil {
 				log.Fatal("Unable to parse DirectMap2M", err)
 			}
-		case "DirectMap1G":
+		case MEMDirectMap1G:
 			m.DirectMap1G = value
 			if err != nil {
 				log.Fatal("Unable to parse DirectMap1G", err)

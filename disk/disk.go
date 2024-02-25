@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-type DiskStats struct {
+type DiskStat struct {
 	major               int
 	minor               int
 	devname             string
@@ -65,8 +65,8 @@ const (
 	DSFMS_SPENT_FLUSHING
 )
 
-func diskparse(s string) (*DiskStats, error) {
-	ds := new(DiskStats)
+func diskparse(s string) (*DiskStat, error) {
+	ds := new(DiskStat)
 
 	fields := strings.Fields(s)
 
@@ -92,8 +92,9 @@ func diskparse(s string) (*DiskStats, error) {
 	return ds, nil
 }
 
-func GetDiskStats() ([]*DiskStats, error) {
-	var ds []*DiskStats
+// Create an array od DiskStat and return it
+func DiskStats() ([]*DiskStat, error) {
+	var ds []*DiskStat
 
 	f, err := os.Open("/proc/diskstats")
 	if err != nil {
@@ -101,12 +102,10 @@ func GetDiskStats() ([]*DiskStats, error) {
 	}
 	defer f.Close()
 
-	// lines of diskstats
 	scanner := bufio.NewScanner(f)
 	for linenum := 0; scanner.Scan(); linenum++ {
 		line := scanner.Text()
 		curdisk, err := diskparse(line)
-		// log.Debug("line: %d: parsed disk %+v", linenum, curdisk)
 		ds = append(ds, curdisk)
 		if err != nil {
 			return nil, err

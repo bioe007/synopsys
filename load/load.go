@@ -27,7 +27,7 @@ const (
 	LA_LASTPID
 )
 
-func GetLoadAvg() (*Load, error) {
+func LoadAvg() (*Load, error) {
 	f, err := os.ReadFile("/proc/loadavg")
 	if err != nil {
 		log.Fatal(err)
