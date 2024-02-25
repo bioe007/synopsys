@@ -135,14 +135,10 @@ func get_cpuinfo() (*CpuInfo, error) {
 	return cpuinfo, nil
 }
 
-func getCpuTime(cpunum int) (*CpuTime, error) {
-	// use the cpunum as the line number in /proc/stat which has the overall
-	// cpu in line zero.
-	if cpunum == -1 {
-		cpunum = 0
-	} else {
-		cpunum++
-	}
+// Get cpunums stats. The -1 value is special and gets the overall stats
+// For every cpunum add an entry to the returned slice of cputimes
+func getCpuTime(numcpu int) ([]*CpuTime, error) {
+	// The first line in stat is the overall CPU stats. We should make sure that's always in cpunums
 	pathCpuTime := "/proc/stat"
 	f, err := os.Open(pathCpuTime)
 	if err != nil {
@@ -150,77 +146,80 @@ func getCpuTime(cpunum int) (*CpuTime, error) {
 	}
 	defer f.Close()
 
-	ct := new(CpuTime)
+	// t := regexp.MustCompile(`[ \t]`)
+	var times []*CpuTime
 	scanner := bufio.NewScanner(f)
-	line := min(0, cpunum)
+
+	// For cputime struct only the first numcpu+1 lines have right content
+	line := 0
 	for scanner.Scan() {
-		if line == cpunum {
-			tsrc := strings.Split(scanner.Text(), " ")
-			var i cputimeidx
-			for i = cputNr; i < cputGuest_nice; i++ {
-				switch i {
-				case cputNr:
-					ct.nr = tsrc[i]
-				case cputUser:
-					ct.user, err = strconv.Atoi(tsrc[i])
-					if err != nil {
-						return nil, err
-					} // time in user mode
-				case cputNice:
-					ct.nice, err = strconv.Atoi(tsrc[i])
-					if err != nil {
-						return nil, err
-					}
-				case cputSys:
-					ct.sys, err = strconv.Atoi(tsrc[i])
-					if err != nil {
-						return nil, err
-					}
-				case cputIdle:
-					ct.idle, err = strconv.Atoi(tsrc[i])
-					if err != nil {
-						return nil, err
-					}
-				case cputIowait:
-					ct.iowait, err = strconv.Atoi(tsrc[i])
-					if err != nil {
-						return nil, err
-					}
-				case cputIrq:
-					ct.irq, err = strconv.Atoi(tsrc[i])
-					if err != nil {
-						return nil, err
-					}
-				case cputSoftirq:
-					ct.softirq, err = strconv.Atoi(tsrc[i])
-					if err != nil {
-						return nil, err
-					}
-				case cputSteal:
-					ct.steal, err = strconv.Atoi(tsrc[i])
-					if err != nil {
-						return nil, err
-					}
-				case cputGuest:
-					ct.guest, err = strconv.Atoi(tsrc[i])
-					if err != nil {
-						return nil, err
-					}
-				case cputGuest_nice:
-					ct.guest_nice, err = strconv.Atoi(tsrc[i])
-					if err != nil {
-						return nil, err
-					}
+		tsrc := strings.Fields(scanner.Text())
+		times = append(times, new(CpuTime))
+		var i cputimeidx
+		// omg there has to be a better way
+		for i = cputNr; i < cputGuest_nice; i++ {
+			switch i {
+			case cputNr:
+				times[line].nr = tsrc[i]
+			case cputUser:
+				times[line].user, err = strconv.Atoi(tsrc[i])
+				if err != nil {
+					return nil, err
+				}
+			case cputNice:
+				times[line].nice, err = strconv.Atoi(tsrc[i])
+				if err != nil {
+					return nil, err
+				}
+			case cputSys:
+				times[line].sys, err = strconv.Atoi(tsrc[i])
+				if err != nil {
+					return nil, err
+				}
+			case cputIdle:
+				times[line].idle, err = strconv.Atoi(tsrc[i])
+				if err != nil {
+					return nil, err
+				}
+			case cputIowait:
+				times[line].iowait, err = strconv.Atoi(tsrc[i])
+				if err != nil {
+					return nil, err
+				}
+			case cputIrq:
+				times[line].irq, err = strconv.Atoi(tsrc[i])
+				if err != nil {
+					return nil, err
+				}
+			case cputSoftirq:
+				times[line].softirq, err = strconv.Atoi(tsrc[i])
+				if err != nil {
+					return nil, err
+				}
+			case cputSteal:
+				times[line].steal, err = strconv.Atoi(tsrc[i])
+				if err != nil {
+					return nil, err
+				}
+			case cputGuest:
+				times[line].guest, err = strconv.Atoi(tsrc[i])
+				if err != nil {
+					return nil, err
+				}
+			case cputGuest_nice:
+				times[line].guest_nice, err = strconv.Atoi(tsrc[i])
+				if err != nil {
+					return nil, err
 				}
 			}
 		}
 		line++
-		if line > cpunum {
+		if line > numcpu {
 			break
 		}
 	}
 
-	return ct, nil
+	return times, nil
 }
 
 func CPUStats() (*CpuInfo, error) {
@@ -228,10 +227,11 @@ func CPUStats() (*CpuInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	times, err := getCpuTime(0)
+
+	times, err := getCpuTime(info.Siblings)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("%+v", times)
+	fmt.Printf("%+v\n", times)
 	return info, nil
 }
