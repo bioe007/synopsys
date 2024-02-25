@@ -1,6 +1,7 @@
 package uptime
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -9,11 +10,24 @@ import (
 // example
 // 221671.25 3315800.64
 
-const uptimePath = "/proc/uptime"
+const (
+	uptimePath     = "/proc/uptime"
+	secondsPerMin  = 60
+	secondsPerHour = 3600
+)
 
 type Uptime struct {
 	UptimeSeconds float64
 	IdleSeconds   float64
+}
+
+func (ut *Uptime) HoursMinutes() {
+	seconds := int64(ut.UptimeSeconds)
+	hours := seconds / secondsPerHour
+	seconds %= secondsPerHour
+	minutes := seconds / secondsPerMin
+	seconds %= secondsPerMin
+	fmt.Printf("%d:%d:%d\n", hours, minutes, seconds)
 }
 
 func Read_uptime() (*Uptime, error) {

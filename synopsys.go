@@ -17,7 +17,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("CPU %+v\n", c)
+	// fmt.Printf("CPU %+v\n", c)
+	c.InfoPrint()
 
 	m, err := memory.Getmeminfo()
 	if err != nil {
@@ -42,4 +43,6 @@ func main() {
 		log.Fatal("Unable to read uptime")
 	}
 	fmt.Printf("uptime: %+v\n", ut)
+	// uptime.HoursMinutes(ut)
+	ut.HoursMinutes()
 }

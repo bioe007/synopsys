@@ -2,6 +2,7 @@ package cpu
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -11,6 +12,11 @@ type CpuInfo struct {
 	Cores    int
 	Mhz      float64
 	Siblings int // this is threads
+}
+
+func (cpu *CpuInfo) InfoPrint() {
+	s := fmt.Sprintf("vc:%d f: %.2f", cpu.Siblings+1, cpu.Mhz/1000)
+	fmt.Println(s)
 }
 
 type cpuinfoidx int
@@ -47,7 +53,7 @@ const (
 )
 
 type CpuTime struct {
-	nr int // cpu number
+	nr string // cpu number
 	// times are in USER_HZ which is defined by sysconf(_SC_CLK_TCK)
 	user       int // time in user mode
 	nice       int
@@ -60,6 +66,22 @@ type CpuTime struct {
 	guest      int
 	guest_nice int
 }
+
+type cputimeidx int
+
+const (
+	cputNr   cputimeidx = iota
+	cputUser            // time in user mode
+	cputNice
+	cputSys
+	cputIdle
+	cputIowait
+	cputIrq
+	cputSoftirq
+	cputSteal
+	cputGuest
+	cputGuest_nice
+)
 
 func get_cpuinfo() (*CpuInfo, error) {
 	f, err := os.Open("/proc/cpuinfo")
@@ -121,7 +143,82 @@ func getCpuTime(cpunum int) (*CpuTime, error) {
 	} else {
 		cpunum++
 	}
+	pathCpuTime := "/proc/stat"
+	f, err := os.Open(pathCpuTime)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
 	ct := new(CpuTime)
+	scanner := bufio.NewScanner(f)
+	line := min(0, cpunum)
+	for scanner.Scan() {
+		if line == cpunum {
+			tsrc := strings.Split(scanner.Text(), " ")
+			var i cputimeidx
+			for i = cputNr; i < cputGuest_nice; i++ {
+				switch i {
+				case cputNr:
+					ct.nr = tsrc[i]
+				case cputUser:
+					ct.user, err = strconv.Atoi(tsrc[i])
+					if err != nil {
+						return nil, err
+					} // time in user mode
+				case cputNice:
+					ct.nice, err = strconv.Atoi(tsrc[i])
+					if err != nil {
+						return nil, err
+					}
+				case cputSys:
+					ct.sys, err = strconv.Atoi(tsrc[i])
+					if err != nil {
+						return nil, err
+					}
+				case cputIdle:
+					ct.idle, err = strconv.Atoi(tsrc[i])
+					if err != nil {
+						return nil, err
+					}
+				case cputIowait:
+					ct.iowait, err = strconv.Atoi(tsrc[i])
+					if err != nil {
+						return nil, err
+					}
+				case cputIrq:
+					ct.irq, err = strconv.Atoi(tsrc[i])
+					if err != nil {
+						return nil, err
+					}
+				case cputSoftirq:
+					ct.softirq, err = strconv.Atoi(tsrc[i])
+					if err != nil {
+						return nil, err
+					}
+				case cputSteal:
+					ct.steal, err = strconv.Atoi(tsrc[i])
+					if err != nil {
+						return nil, err
+					}
+				case cputGuest:
+					ct.guest, err = strconv.Atoi(tsrc[i])
+					if err != nil {
+						return nil, err
+					}
+				case cputGuest_nice:
+					ct.guest_nice, err = strconv.Atoi(tsrc[i])
+					if err != nil {
+						return nil, err
+					}
+				}
+			}
+		}
+		line++
+		if line > cpunum {
+			break
+		}
+	}
 
 	return ct, nil
 }
@@ -131,5 +228,10 @@ func CPUStats() (*CpuInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	times, err := getCpuTime(0)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("%+v", times)
 	return info, nil
 }

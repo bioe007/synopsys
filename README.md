@@ -31,7 +31,7 @@ tool is only a simple `scp synopsys` away
 ## Critical Parts
 These are the parameters I'd like to show 
 
-- Uptime 
+- Uptime: express as hours:min:sec x
 - CPU: cores, overall % useage, then % sys, usr, guest, ...
 -  _wonders_ any way to make mpstat type of info here?
   - by default, show the overall cpu utilization
@@ -54,6 +54,9 @@ initially this will just output some rolling format. will have to think
 about something like a tui to properly place things for readability
 though
 
+
+## random thoughts
+Is there a faster way to fetch all this data than reading a text file each time?
 
 ## References
 
