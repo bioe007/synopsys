@@ -24,7 +24,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("MEMORY %+v\n", m)
+	m.InfoPrint()
 
 	ld, err := load.LoadAvg()
 	if err != nil {

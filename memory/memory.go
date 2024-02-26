@@ -2,6 +2,7 @@ package memory
 
 import (
 	"encoding/csv"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -134,8 +135,20 @@ const (
 	MEMDirectMap1G
 )
 
-func Getmeminfo() (*Meminfo, error) {
+func (m *Meminfo) InfoPrint() {
+	// free/total cache buff
+	scale := 1024
+	s := fmt.Sprintf(
+		"MEM:%d/%d %d/%d",
+		m.MemFree/scale,
+		m.MemTotal/scale,
+		m.Buffers/scale,
+		m.Cached/scale,
+	)
+	fmt.Println(s)
+}
 
+func Getmeminfo() (*Meminfo, error) {
 	memfile, err := os.Open("/proc/meminfo")
 	// memfile, err := os.Open("./meminfo_test.txt")
 	if err != nil {
@@ -453,5 +466,4 @@ func Getmeminfo() (*Meminfo, error) {
 	}
 
 	return m, nil
-
 }
