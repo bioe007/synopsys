@@ -3,19 +3,34 @@ package cpu
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/tklauser/go-sysconf"
 )
 
 type CpuInfo struct {
 	Cores    int
 	Mhz      float64
 	Siblings int // this is threads
+	Stats    []*CpuTime
 }
 
 func (cpu *CpuInfo) InfoPrint() {
-	s := fmt.Sprintf("vc:%d f: %.2f", cpu.Siblings+1, cpu.Mhz/1000)
+	clktck, err := sysconf.Sysconf(sysconf.SC_CLK_TCK)
+	if err != nil {
+		log.Fatal("error getting system clock", err)
+	}
+	s := fmt.Sprintf(
+		"vc:%d f: %.2f usr:%d sys: %d: idle: %d",
+		cpu.Siblings+1,
+		cpu.Mhz/1000,
+		int64(cpu.Stats[0].user)/clktck,
+		int64(cpu.Stats[0].sys)/clktck,
+		int64(cpu.Stats[0].idle)/clktck,
+	)
 	fmt.Println(s)
 }
 
@@ -228,10 +243,9 @@ func CPUStats() (*CpuInfo, error) {
 		return nil, err
 	}
 
-	times, err := getCpuTime(info.Siblings)
+	info.Stats, err = getCpuTime(info.Siblings)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("%+v\n", times)
 	return info, nil
 }
