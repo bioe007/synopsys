@@ -92,12 +92,13 @@ const (
 
 // Holds all cpu information including previous, current counts and estimated values for percent time spent in each.
 type CpuInfo struct {
-	Cores     int
-	Mhz       float64
-	Siblings  int // this is threads
-	Stats     []*CpuTime
-	OldStats  []*CpuTime
-	calcstats *calculatedstats
+	Cores        int
+	Mhz          float64
+	Siblings     int // this is threads
+	Stats        []*CpuTime
+	OldStats     []*CpuTime
+	calcstats    *calculatedstats
+	SummaryStats *CpuStat
 }
 
 // This will be a heap to quickly get cpu sorted by user time
@@ -144,16 +145,21 @@ func (cpu *CpuInfo) estimate() {
 		c.steal = float32((cur[i].steal - prev[i].steal)) / denom
 		c.guest = float32((cur[i].guest - prev[i].guest)) / denom
 		c.guest_nice = float32((cur[i].guest_nice - prev[i].guest_nice)) / denom
-		heap.Push(cpu.calcstats, c)
+		if i == 0 {
+			cpu.SummaryStats = c
+		} else {
+			heap.Push(cpu.calcstats, c)
+		}
 	}
 }
 
+// TODO - update this to string representation of CpuInfo
 func (cpu *CpuInfo) InfoPrint(num_cpus int) string {
 	// clktck, err := sysconf.Sysconf(sysconf.SC_CLK_TCK)
 	// if err != nil {
-	// 	log.Fatal("error getting system clock", err)
+	//	log.Fatal("error getting system clock", err)
 	// }
-	cpu.estimate()
+	num_cpus = min(cpu.Siblings, num_cpus)
 	if len(cpu.OldStats) == 0 {
 		// TODO: - be smarter than just skipping it the first time through?
 		return ""
@@ -161,7 +167,8 @@ func (cpu *CpuInfo) InfoPrint(num_cpus int) string {
 
 	var sb strings.Builder
 	sb.WriteString(fmt.Sprintf("vc:%d\tf: %.2f\n", cpu.Siblings, cpu.Mhz/1000))
-
+	sb.WriteString(fmt.Sprintf("CPU: usr:%.2f sys:%.2f: idle:%.2f\n",
+		cpu.SummaryStats.user, cpu.SummaryStats.sys, cpu.SummaryStats.idle))
 	for i := 0; i < num_cpus; i++ {
 		c := heap.Pop(cpu.calcstats).(*CpuStat)
 		sb.WriteString(
@@ -191,7 +198,7 @@ func get_cpuinfo() (*CpuInfo, error) {
 
 	// f2, err := mmap.Open("/proc/cpuinfo")
 	// if err != nil {
-	// 	return nil, err
+	//	return nil, err
 	// }
 	// defer f2.Close()
 
@@ -321,16 +328,23 @@ func getCpuTime(numcpu int) ([]*CpuTime, error) {
 }
 
 func CPUStats(ci *CpuInfo) (*CpuInfo, error) {
-	info, err := get_cpuinfo()
+	// only update info if it's empty? is it common enough for num cpu etc to
+	// change for this to be checked everytime?
+	var err error
+	// this seems like a bad idea but the norm in golang?
+	// but also it's nonsesne for a real cpuinfo to have zero cores
+	if ci.Cores == 0 {
+		ci, err = get_cpuinfo()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	ci.OldStats = ci.Stats
+	ci.Stats, err = getCpuTime(ci.Siblings)
 	if err != nil {
 		return nil, err
 	}
-
-	info.OldStats = ci.Stats
-
-	info.Stats, err = getCpuTime(info.Siblings)
-	if err != nil {
-		return nil, err
-	}
-	return info, nil
+	ci.estimate()
+	return ci, nil
 }
