@@ -1,6 +1,7 @@
 package load
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -26,6 +27,18 @@ const (
 	// LA_PROC_TOTAL // This is actually not a sepaarte entry when parsing
 	LA_LASTPID
 )
+
+func (ld *Load) InfoPrint() string {
+	s := fmt.Sprintf(
+		"r/t: %d/%d\tla: %.2f,%.2f,%.2f",
+		ld.proc_running,
+		ld.proc_total,
+		ld.one,
+		ld.five,
+		ld.fifteen,
+	)
+	return s
+}
 
 func LoadAvg() (*Load, error) {
 	f, err := os.ReadFile("/proc/loadavg")
@@ -74,5 +87,4 @@ func LoadAvg() (*Load, error) {
 		}
 	}
 	return loadinfo, nil
-
 }

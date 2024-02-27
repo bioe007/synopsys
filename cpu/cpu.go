@@ -3,12 +3,9 @@ package cpu
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/tklauser/go-sysconf"
 )
 
 type CpuInfo struct {
@@ -16,22 +13,46 @@ type CpuInfo struct {
 	Mhz      float64
 	Siblings int // this is threads
 	Stats    []*CpuTime
+	OldStats []*CpuTime
 }
 
-func (cpu *CpuInfo) InfoPrint() {
-	clktck, err := sysconf.Sysconf(sysconf.SC_CLK_TCK)
-	if err != nil {
-		log.Fatal("error getting system clock", err)
+func (cpu *CpuInfo) calcStats() {
+	if len(cpu.OldStats) == 0 {
+		// TODO - be smarter than just skipping it the first time through?
+		return
 	}
+}
+
+func (cpu *CpuInfo) InfoPrint() string {
+	// clktck, err := sysconf.Sysconf(sysconf.SC_CLK_TCK)
+	// if err != nil {
+	// 	log.Fatal("error getting system clock", err)
+	// }
+	if len(cpu.OldStats) == 0 {
+		// TODO - be smarter than just skipping it the first time through?
+		return ""
+	}
+	prev_cpu := cpu.OldStats[0]
+	cur_cpu := cpu.Stats[0]
+
+	cpu_total := cur_cpu.user + cur_cpu.nice + cur_cpu.sys + cur_cpu.idle + cur_cpu.iowait + cur_cpu.irq + cur_cpu.softirq + cur_cpu.steal + cur_cpu.guest + cur_cpu.guest_nice
+	old_total := prev_cpu.user + prev_cpu.nice + prev_cpu.sys + prev_cpu.idle + prev_cpu.iowait + prev_cpu.irq + prev_cpu.softirq + prev_cpu.steal + prev_cpu.guest + prev_cpu.guest_nice
+	nl := float32(cpu_total - old_total)
 	s := fmt.Sprintf(
-		"vc:%d f: %.2f usr:%d sys: %d: idle: %d",
-		cpu.Siblings+1,
+		"vc:%d\tf: %.2f\t\tusr:%.2f sys:%.2f: idle:%.2f iowait:%.2f irq:%.2f softirq:%.2f steal:%.2f guest:%.2f gnice:%.2f",
+		cpu.Siblings,
 		cpu.Mhz/1000,
-		int64(cpu.Stats[0].user)/clktck,
-		int64(cpu.Stats[0].sys)/clktck,
-		int64(cpu.Stats[0].idle)/clktck,
+		float32((cur_cpu.user-prev_cpu.user))/nl,
+		float32(cur_cpu.sys-prev_cpu.sys)/nl,
+		float32(cur_cpu.idle-prev_cpu.idle)/nl,
+		float32(cur_cpu.iowait-prev_cpu.iowait)/nl,
+		float32(cur_cpu.irq-prev_cpu.irq)/nl,
+		float32(cur_cpu.softirq-prev_cpu.softirq)/nl,
+		float32(cur_cpu.steal-prev_cpu.steal)/nl,
+		float32(cur_cpu.guest-prev_cpu.guest)/nl,
+		float32(cur_cpu.guest_nice-prev_cpu.guest_nice)/nl,
 	)
-	fmt.Println(s)
+	return s
 }
 
 type cpuinfoidx int
@@ -161,7 +182,6 @@ func getCpuTime(numcpu int) ([]*CpuTime, error) {
 	}
 	defer f.Close()
 
-	// t := regexp.MustCompile(`[ \t]`)
 	var times []*CpuTime
 	scanner := bufio.NewScanner(f)
 
@@ -171,7 +191,7 @@ func getCpuTime(numcpu int) ([]*CpuTime, error) {
 		tsrc := strings.Fields(scanner.Text())
 		times = append(times, new(CpuTime))
 		var i cputimeidx
-		// omg there has to be a better way
+		// TODO: omg there has to be a better way
 		for i = cputNr; i < cputGuest_nice; i++ {
 			switch i {
 			case cputNr:
@@ -237,11 +257,13 @@ func getCpuTime(numcpu int) ([]*CpuTime, error) {
 	return times, nil
 }
 
-func CPUStats() (*CpuInfo, error) {
+func CPUStats(ci *CpuInfo) (*CpuInfo, error) {
 	info, err := get_cpuinfo()
 	if err != nil {
 		return nil, err
 	}
+
+	info.OldStats = ci.Stats
 
 	info.Stats, err = getCpuTime(info.Siblings)
 	if err != nil {

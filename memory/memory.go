@@ -135,17 +135,17 @@ const (
 	MEMDirectMap1G
 )
 
-func (m *Meminfo) InfoPrint() {
+func (m *Meminfo) InfoPrint() string {
 	// free/total cache buff
 	scale := 1024
 	s := fmt.Sprintf(
-		"MEM:%d/%d %d/%d",
+		"free/tot: %d/%d\t\tbuff/cache:%d/%d",
 		m.MemFree/scale,
 		m.MemTotal/scale,
 		m.Buffers/scale,
 		m.Cached/scale,
 	)
-	fmt.Println(s)
+	return s
 }
 
 func Getmeminfo() (*Meminfo, error) {

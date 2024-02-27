@@ -21,13 +21,15 @@ type Uptime struct {
 	IdleSeconds   float64
 }
 
-func (ut *Uptime) HoursMinutes() {
+func (ut *Uptime) HoursMinutes() string {
 	seconds := int64(ut.UptimeSeconds)
 	hours := seconds / secondsPerHour
 	seconds %= secondsPerHour
 	minutes := seconds / secondsPerMin
 	seconds %= secondsPerMin
-	fmt.Printf("%d:%d:%d\n", hours, minutes, seconds)
+
+	s := fmt.Sprintf("%d:%d:%d", hours, minutes, seconds)
+	return s
 }
 
 func Read_uptime() (*Uptime, error) {

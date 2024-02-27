@@ -36,7 +36,8 @@ These are the parameters I'd like to show
 -  _wonders_ any way to make mpstat type of info here?
   - by default, show the overall cpu utilization
   - nice to have - show hot cores with 80% utilization over x sec
-- Number of processes: run|able, sleep, unint sleep, zombies
+- Processes:
+    - run|able, sleep, unint sleep, zombies
 - 'Errors' from dmesg and ~ dmesg | tail (or journalctl -b | tail)
 - Memory: free/used (proc/meminfo)
 - Swap: free/used (proc/meminfo)
