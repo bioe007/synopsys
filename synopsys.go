@@ -63,7 +63,7 @@ func main() {
 				"up:%s %s cpu:%s\nmem: %s\n",
 				ut.HoursMinutes(),
 				ld.InfoPrint(),
-				c.InfoPrint(),
+				c.InfoPrint(4),
 				m.InfoPrint(),
 			)
 		}

@@ -2,59 +2,61 @@ package cpu
 
 import (
 	"bufio"
+	"container/heap"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
 )
 
-type CpuInfo struct {
-	Cores    int
-	Mhz      float64
-	Siblings int // this is threads
-	Stats    []*CpuTime
-	OldStats []*CpuTime
+// For /proc/stat field order
+type cputimeidx int
+
+const (
+	cputNr cputimeidx = iota
+	cputUser
+	cputNice
+	cputSys
+	cputIdle
+	cputIowait
+	cputIrq
+	cputSoftirq
+	cputSteal
+	cputGuest
+	cputGuest_nice
+)
+
+type CpuTime struct {
+	nr string // cpu number
+	// times are in USER_HZ which is defined by sysconf(_SC_CLK_TCK)
+	user       int // time in user mode
+	nice       int
+	sys        int
+	idle       int
+	iowait     int
+	irq        int
+	softirq    int
+	steal      int
+	guest      int
+	guest_nice int
 }
 
-func (cpu *CpuInfo) calcStats() {
-	if len(cpu.OldStats) == 0 {
-		// TODO - be smarter than just skipping it the first time through?
-		return
-	}
+// Used to store calculated fractional values
+type CpuStat struct {
+	nr         string // cpu number
+	user       float32
+	nice       float32
+	sys        float32
+	idle       float32
+	iowait     float32
+	irq        float32
+	softirq    float32
+	steal      float32
+	guest      float32
+	guest_nice float32
 }
 
-func (cpu *CpuInfo) InfoPrint() string {
-	// clktck, err := sysconf.Sysconf(sysconf.SC_CLK_TCK)
-	// if err != nil {
-	// 	log.Fatal("error getting system clock", err)
-	// }
-	if len(cpu.OldStats) == 0 {
-		// TODO - be smarter than just skipping it the first time through?
-		return ""
-	}
-	prev_cpu := cpu.OldStats[0]
-	cur_cpu := cpu.Stats[0]
-
-	cpu_total := cur_cpu.user + cur_cpu.nice + cur_cpu.sys + cur_cpu.idle + cur_cpu.iowait + cur_cpu.irq + cur_cpu.softirq + cur_cpu.steal + cur_cpu.guest + cur_cpu.guest_nice
-	old_total := prev_cpu.user + prev_cpu.nice + prev_cpu.sys + prev_cpu.idle + prev_cpu.iowait + prev_cpu.irq + prev_cpu.softirq + prev_cpu.steal + prev_cpu.guest + prev_cpu.guest_nice
-	nl := float32(cpu_total - old_total)
-	s := fmt.Sprintf(
-		"vc:%d\tf: %.2f\t\tusr:%.2f sys:%.2f: idle:%.2f iowait:%.2f irq:%.2f softirq:%.2f steal:%.2f guest:%.2f gnice:%.2f",
-		cpu.Siblings,
-		cpu.Mhz/1000,
-		float32((cur_cpu.user-prev_cpu.user))/nl,
-		float32(cur_cpu.sys-prev_cpu.sys)/nl,
-		float32(cur_cpu.idle-prev_cpu.idle)/nl,
-		float32(cur_cpu.iowait-prev_cpu.iowait)/nl,
-		float32(cur_cpu.irq-prev_cpu.irq)/nl,
-		float32(cur_cpu.softirq-prev_cpu.softirq)/nl,
-		float32(cur_cpu.steal-prev_cpu.steal)/nl,
-		float32(cur_cpu.guest-prev_cpu.guest)/nl,
-		float32(cur_cpu.guest_nice-prev_cpu.guest_nice)/nl,
-	)
-	return s
-}
-
+// Lines in the /proc/cpuinfo file
 type cpuinfoidx int
 
 const (
@@ -88,36 +90,97 @@ const (
 	cinfcinf_power_management
 )
 
-type CpuTime struct {
-	nr string // cpu number
-	// times are in USER_HZ which is defined by sysconf(_SC_CLK_TCK)
-	user       int // time in user mode
-	nice       int
-	sys        int
-	idle       int
-	iowait     int
-	irq        int
-	softirq    int
-	steal      int
-	guest      int
-	guest_nice int
+// Holds all cpu information including previous, current counts and estimated values for percent time spent in each.
+type CpuInfo struct {
+	Cores     int
+	Mhz       float64
+	Siblings  int // this is threads
+	Stats     []*CpuTime
+	OldStats  []*CpuTime
+	calcstats *calculatedstats
 }
 
-type cputimeidx int
+// This will be a heap to quickly get cpu sorted by user time
+type calculatedstats []*CpuStat
 
-const (
-	cputNr   cputimeidx = iota
-	cputUser            // time in user mode
-	cputNice
-	cputSys
-	cputIdle
-	cputIowait
-	cputIrq
-	cputSoftirq
-	cputSteal
-	cputGuest
-	cputGuest_nice
-)
+func (h calculatedstats) Len() int { return len(h) }
+
+// TODO: use configurable method
+func (h calculatedstats) Less(i, j int) bool { return h[i].user > h[j].user }
+func (h calculatedstats) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h *calculatedstats) Push(x any)        { *h = append(*h, x.(*CpuStat)) }
+func (h *calculatedstats) Pop() any {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	*h = old[0 : n-1]
+	return x
+}
+
+func (cpu *CpuTime) total() int {
+	return cpu.user + cpu.nice + cpu.sys + cpu.idle + cpu.iowait + cpu.irq + cpu.softirq + cpu.steal + cpu.guest + cpu.guest_nice
+}
+
+func (cpu *CpuInfo) estimate() {
+	if len(cpu.OldStats) == 0 {
+		return
+	}
+	prev := cpu.OldStats
+	cur := cpu.Stats
+
+	cpu.calcstats = new(calculatedstats)
+	heap.Init(cpu.calcstats)
+
+	for i := range cur {
+		c := new(CpuStat)
+		denom := float32(cur[i].total() - prev[i].total())
+		c.nr = cur[i].nr
+		c.user = float32((cur[i].user - prev[i].user)) / denom
+		c.sys = float32((cur[i].sys - prev[i].sys)) / denom
+		c.idle = float32((cur[i].idle - prev[i].idle)) / denom
+		c.iowait = float32((cur[i].iowait - prev[i].iowait)) / denom
+		c.irq = float32((cur[i].irq - prev[i].irq)) / denom
+		c.softirq = float32((cur[i].softirq - prev[i].softirq)) / denom
+		c.steal = float32((cur[i].steal - prev[i].steal)) / denom
+		c.guest = float32((cur[i].guest - prev[i].guest)) / denom
+		c.guest_nice = float32((cur[i].guest_nice - prev[i].guest_nice)) / denom
+		heap.Push(cpu.calcstats, c)
+	}
+}
+
+func (cpu *CpuInfo) InfoPrint(num_cpus int) string {
+	// clktck, err := sysconf.Sysconf(sysconf.SC_CLK_TCK)
+	// if err != nil {
+	// 	log.Fatal("error getting system clock", err)
+	// }
+	cpu.estimate()
+	if len(cpu.OldStats) == 0 {
+		// TODO: - be smarter than just skipping it the first time through?
+		return ""
+	}
+
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("vc:%d\tf: %.2f\n", cpu.Siblings, cpu.Mhz/1000))
+
+	for i := 0; i < num_cpus; i++ {
+		c := heap.Pop(cpu.calcstats).(*CpuStat)
+		sb.WriteString(
+			fmt.Sprintf(
+				"%s: usr:%.2f sys:%.2f: idle:%.2f iowait:%.2f irq:%.2f softirq:%.2f steal:%.2f guest:%.2f gnice:%.2f\n",
+				c.nr,
+				c.user,
+				c.sys,
+				c.idle,
+				c.iowait,
+				c.irq,
+				c.softirq,
+				c.steal,
+				c.guest,
+				c.guest_nice,
+			))
+	}
+	return sb.String()
+}
 
 func get_cpuinfo() (*CpuInfo, error) {
 	f, err := os.Open("/proc/cpuinfo")
