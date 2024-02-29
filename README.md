@@ -61,6 +61,6 @@ Is there a faster way to fetch all this data than reading a text file each time?
 
 ## References
 
+- [/proc](https://www.man7.org/linux/man-pages/man5/proc.5.html)
 - [/proc/loadavg](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/4/html/reference_guide/s2-proc-loadavg)
-
 

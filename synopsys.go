@@ -53,6 +53,7 @@ func main() {
 			if err != nil {
 				log.Fatal("disk average failure", err)
 			}
+			// TODO
 			fmt.Println("Got disks: ", len(disks))
 
 			ut, err := uptime.Read_uptime()
@@ -63,6 +64,7 @@ func main() {
 				"up:%s %s cpu:%s\nmem: %s\n",
 				ut.HoursMinutes(),
 				ld.InfoPrint(),
+				// TODO - accept as parameter
 				c.InfoPrint(4),
 				m.InfoPrint(),
 			)
