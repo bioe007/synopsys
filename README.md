@@ -14,11 +14,8 @@ The goal is to create an overview of a system. Instead of running:
 Show the _critical_ parts from each of those in legible fashion with a
 single command.
 
-Some might say this breaks the one-tool philosophy but i disagree, this
-isn't intended to 
-
 Ideally this would be doable from a single command that doesn't need to
-be pre-installed so either a script or self-contained binary. 
+be pre-installed so either a script or self-contained binary.
 
 Because any scripted language (e.g. python, lua) doing this would
 require either a *ton* of boilerplate or a long list of dependencies
@@ -29,9 +26,10 @@ tool is only a simple `scp synopsys` away
 
 
 ## Critical Parts
-These are the parameters I'd like to show 
+These are the parameters I'd like to show
 
 - Uptime: express as hours:min:sec x
+- load average - what if r/cpu and b/disks ?
 - CPU: cores, overall % useage, then % sys, usr, guest, ...
 -  _wonders_ any way to make mpstat type of info here?
   - by default, show the overall cpu utilization
@@ -49,7 +47,7 @@ These are the parameters I'd like to show
 - connections - active, passive, trans/retrans stats
 - top 'few' processes consuming CPU | memory
 
-## Display 
+## Display
 
 initially this will just output some rolling format. will have to think
 about something like a tui to properly place things for readability
@@ -63,4 +61,5 @@ Is there a faster way to fetch all this data than reading a text file each time?
 
 - [/proc](https://www.man7.org/linux/man-pages/man5/proc.5.html)
 - [/proc/loadavg](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/4/html/reference_guide/s2-proc-loadavg)
-
+- [/sys/block](https://www.kernel.org/doc/html/latest/block/stat.html)
+- [filesystems](https://www.kernel.org/doc/html/latest/filesystems/index.html)

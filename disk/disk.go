@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-type DiskStat struct {
+type diskStat struct {
 	major               int
 	minor               int
 	devname             string
@@ -40,6 +40,12 @@ type DiskStat struct {
 	ms_spent_flushing int // This is the total number of milliseconds spent by all flush requests.
 }
 
+type Stat struct {
+	old    diskStat
+	new    diskStat
+	values statValues
+}
+
 type dsfields int
 
 const (
@@ -64,6 +70,10 @@ const (
 	DSFNUM_FLUSH_REQUESTS_COMPLETED
 	DSFMS_SPENT_FLUSHING
 )
+
+type Disk struct {
+	sick int
+}
 
 func diskparse(s string) (*DiskStat, error) {
 	ds := new(DiskStat)
@@ -92,9 +102,9 @@ func diskparse(s string) (*DiskStat, error) {
 	return ds, nil
 }
 
-// Create an array od DiskStat and return it
-func DiskStats() ([]*DiskStat, error) {
-	var ds []*DiskStat
+// Create an array od diskStat and return it
+func DiskStats() ([]*diskStat, error) {
+	var ds []*diskStat
 
 	f, err := os.Open("/proc/diskstats")
 	if err != nil {
