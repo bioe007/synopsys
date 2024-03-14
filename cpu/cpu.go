@@ -107,12 +107,17 @@ type calculatedstats []*CpuStat
 func (h calculatedstats) Len() int { return len(h) }
 
 // TODO: use configurable method
-func (h calculatedstats) Less(i, j int) bool { return h[i].user > h[j].user }
-func (h calculatedstats) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
-func (h *calculatedstats) Push(x any)        { *h = append(*h, x.(*CpuStat)) }
+func (h calculatedstats) Less(i, j int) bool {
+	return h[i].user > h[j].user
+}
+func (h calculatedstats) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
+func (h *calculatedstats) Push(x any)   { *h = append(*h, x.(*CpuStat)) }
 func (h *calculatedstats) Pop() any {
 	old := *h
 	n := len(old)
+	if n == 0 {
+		return nil
+	}
 	x := old[n-1]
 	*h = old[0 : n-1]
 	return x
