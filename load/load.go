@@ -23,8 +23,8 @@ const (
 	LA_ONEMIN LA_CONST = iota
 	LA_FIVEMIN
 	LA_FIFTEENMIN
-	LA_PROC_RUN // gotta remember LA_PROC_TOTAL is
-	// LA_PROC_TOTAL // This is actually not a sepaarte entry when parsing
+	// Remember LA_PROC_TOTAL is not a separate entry when parsing.
+	LA_PROC_RUN
 	LA_LASTPID
 )
 

@@ -1,0 +1,94 @@
+execve("/usr/bin/netstat", ["netstat", "-i"], 0x7ffecc7e5f28 /* 77 vars */) = 0
+brk(NULL)                               = 0x64312bdd8000
+access("/etc/ld.so.preload", R_OK)      = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+fstat(3, {st_mode=S_IFREG|0644, st_size=220059, ...}) = 0
+mmap(NULL, 220059, PROT_READ, MAP_PRIVATE, 3, 0) = 0x70a8fa349000
+close(3)                                = 0
+openat(AT_FDCWD, "/usr/lib/libc.so.6", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\220^\2\0\0\0\0\0"..., 832) = 832
+pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 784, 64) = 784
+fstat(3, {st_mode=S_IFREG|0755, st_size=1948952, ...}) = 0
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x70a8fa347000
+pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 784, 64) = 784
+mmap(NULL, 1973104, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x70a8fa165000
+mmap(0x70a8fa189000, 1421312, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x24000) = 0x70a8fa189000
+mmap(0x70a8fa2e4000, 348160, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x17f000) = 0x70a8fa2e4000
+mmap(0x70a8fa339000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1d3000) = 0x70a8fa339000
+mmap(0x70a8fa33f000, 31600, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x70a8fa33f000
+close(3)                                = 0
+mmap(NULL, 12288, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x70a8fa162000
+arch_prctl(ARCH_SET_FS, 0x70a8fa162740) = 0
+set_tid_address(0x70a8fa162a10)         = 66487
+set_robust_list(0x70a8fa162a20, 24)     = 0
+rseq(0x70a8fa163060, 0x20, 0, 0x53053053) = 0
+mprotect(0x70a8fa339000, 16384, PROT_READ) = 0
+mprotect(0x643129f34000, 8192, PROT_READ) = 0
+mprotect(0x70a8fa3b2000, 8192, PROT_READ) = 0
+prlimit64(0, RLIMIT_STACK, NULL, {rlim_cur=8192*1024, rlim_max=RLIM64_INFINITY}) = 0
+munmap(0x70a8fa349000, 220059)          = 0
+uname({sysname="Linux", nodename="dracon", ...}) = 0
+access("/proc/net", R_OK)               = 0
+access("/proc/net/unix", R_OK)          = 0
+socket(AF_UNIX, SOCK_DGRAM, 0)          = 3
+socket(AF_INET, SOCK_DGRAM, IPPROTO_IP) = 4
+access("/proc/net/if_inet6", R_OK)      = 0
+socket(AF_INET6, SOCK_DGRAM, IPPROTO_IP) = 5
+access("/proc/net/ax25", R_OK)          = -1 ENOENT (No such file or directory)
+access("/proc/net/nr", R_OK)            = -1 ENOENT (No such file or directory)
+access("/proc/net/rose", R_OK)          = -1 ENOENT (No such file or directory)
+access("/proc/net/ipx", R_OK)           = -1 ENOENT (No such file or directory)
+access("/proc/net/appletalk", R_OK)     = -1 ENOENT (No such file or directory)
+access("/proc/sys/net/ash", R_OK)       = -1 ENOENT (No such file or directory)
+access("/proc/net/x25", R_OK)           = -1 ENOENT (No such file or directory)
+fstat(1, {st_mode=S_IFCHR|0620, st_rdev=makedev(0x88, 0x6), ...}) = 0
+getrandom("\x49\x20\x3c\xdd\x14\xbe\x6f\xee", 8, GRND_NONBLOCK) = 8
+brk(NULL)                               = 0x64312bdd8000
+brk(0x64312bdf9000)                     = 0x64312bdf9000
+write(1, "Kernel Interface table\n", 23) = 23
+write(1, "Iface             MTU    RX-OK R"..., 86) = 86
+openat(AT_FDCWD, "/proc/net/dev", O_RDONLY) = 6
+fstat(6, {st_mode=S_IFREG|0444, st_size=0, ...}) = 0
+read(6, "Inter-|   Receive               "..., 1024) = 705
+read(6, "", 1024)                       = 0
+close(6)                                = 0
+ioctl(4, SIOCGIFCONF, {ifc_len=1200 /* 30 * sizeof(struct ifreq) */ => 120 /* 3 * sizeof(struct ifreq) */, ifc_buf=[{ifr_name="lo", ifr_addr={sa_family=AF_INET, sin_port=htons(0), sin_addr=inet_addr("127.0.0.1")}}, {ifr_name="enp39s0", ifr_addr={sa_family=AF_INET, sin_port=htons(0), sin_addr=inet_addr("10.1.1.6")}}, {ifr_name="enp39s0", ifr_addr={sa_family=AF_INET, sin_port=htons(0), sin_addr=inet_addr("10.1.1.6")}}]}) = 0
+ioctl(5, SIOCGIFFLAGS, {ifr_name="enp39s0", ifr_flags=IFF_UP|IFF_BROADCAST|IFF_RUNNING|IFF_MULTICAST}) = 0
+ioctl(5, SIOCGIFHWADDR, {ifr_name="enp39s0", ifr_hwaddr={sa_family=ARPHRD_ETHER, sa_data=2c:f0:5d:09:df:04}}) = 0
+ioctl(5, SIOCGIFMTU, {ifr_name="enp39s0", ifr_mtu=1500}) = 0
+ioctl(5, SIOCGIFMAP, {ifr_name="enp39s0", ifr_map={mem_start=0, mem_end=0, base_addr=0, irq=0, dma=0, port=0}}) = 0
+ioctl(5, SIOCGIFMAP, {ifr_name="enp39s0", ifr_map={mem_start=0, mem_end=0, base_addr=0, irq=0, dma=0, port=0}}) = 0
+ioctl(5, SIOCGIFTXQLEN, {ifr_name="enp39s0", ifr_qlen=1000}) = 0
+ioctl(4, SIOCGIFADDR, {ifr_name="enp39s0", ifr_addr={sa_family=AF_INET, sin_port=htons(0), sin_addr=inet_addr("10.1.1.6")}}) = 0
+ioctl(4, SIOCGIFDSTADDR, {ifr_name="enp39s0", ifr_dstaddr={sa_family=AF_INET, sin_port=htons(0), sin_addr=inet_addr("10.1.1.6")}}) = 0
+ioctl(4, SIOCGIFBRDADDR, {ifr_name="enp39s0", ifr_broadaddr={sa_family=AF_INET, sin_port=htons(0), sin_addr=inet_addr("0.0.0.0")}}) = 0
+ioctl(4, SIOCGIFNETMASK, {ifr_name="enp39s0", ifr_netmask={sa_family=AF_INET, sin_port=htons(0), sin_addr=inet_addr("255.255.255.255")}}) = 0
+write(1, "enp39s0          1500  5348824  "..., 87) = 87
+ioctl(5, SIOCGIFFLAGS, {ifr_name="lo", ifr_flags=IFF_UP|IFF_LOOPBACK|IFF_RUNNING}) = 0
+ioctl(5, SIOCGIFHWADDR, {ifr_name="lo", ifr_hwaddr={sa_family=ARPHRD_LOOPBACK, sa_data=00:00:00:00:00:00}}) = 0
+ioctl(5, SIOCGIFMTU, {ifr_name="lo", ifr_mtu=65536}) = 0
+ioctl(5, SIOCGIFMAP, {ifr_name="lo", ifr_map={mem_start=0, mem_end=0, base_addr=0, irq=0, dma=0, port=0}}) = 0
+ioctl(5, SIOCGIFMAP, {ifr_name="lo", ifr_map={mem_start=0, mem_end=0, base_addr=0, irq=0, dma=0, port=0}}) = 0
+ioctl(5, SIOCGIFTXQLEN, {ifr_name="lo", ifr_qlen=1000}) = 0
+ioctl(4, SIOCGIFADDR, {ifr_name="lo", ifr_addr={sa_family=AF_INET, sin_port=htons(0), sin_addr=inet_addr("127.0.0.1")}}) = 0
+ioctl(4, SIOCGIFDSTADDR, {ifr_name="lo", ifr_dstaddr={sa_family=AF_INET, sin_port=htons(0), sin_addr=inet_addr("127.0.0.1")}}) = 0
+ioctl(4, SIOCGIFBRDADDR, {ifr_name="lo", ifr_broadaddr={sa_family=AF_INET, sin_port=htons(0), sin_addr=inet_addr("0.0.0.0")}}) = 0
+ioctl(4, SIOCGIFNETMASK, {ifr_name="lo", ifr_netmask={sa_family=AF_INET, sin_port=htons(0), sin_addr=inet_addr("255.0.0.0")}}) = 0
+write(1, "lo              65536    49430  "..., 86) = 86
+ioctl(5, SIOCGIFFLAGS, {ifr_name="wlp41s0", ifr_flags=IFF_BROADCAST|IFF_MULTICAST}) = 0
+ioctl(5, SIOCGIFHWADDR, {ifr_name="wlp41s0", ifr_hwaddr={sa_family=ARPHRD_ETHER, sa_data=80:32:53:16:46:a3}}) = 0
+ioctl(5, SIOCGIFMTU, {ifr_name="wlp41s0", ifr_mtu=1500}) = 0
+ioctl(5, SIOCGIFMAP, {ifr_name="wlp41s0", ifr_map={mem_start=0, mem_end=0, base_addr=0, irq=0, dma=0, port=0}}) = 0
+ioctl(5, SIOCGIFMAP, {ifr_name="wlp41s0", ifr_map={mem_start=0, mem_end=0, base_addr=0, irq=0, dma=0, port=0}}) = 0
+ioctl(5, SIOCGIFTXQLEN, {ifr_name="wlp41s0", ifr_qlen=1000}) = 0
+ioctl(4, SIOCGIFADDR, {ifr_name="wlp41s0"}) = -1 EADDRNOTAVAIL (Cannot assign requested address)
+ioctl(5, SIOCGIFFLAGS, {ifr_name="wlp47s0f3u4", ifr_flags=IFF_BROADCAST|IFF_MULTICAST}) = 0
+ioctl(5, SIOCGIFHWADDR, {ifr_name="wlp47s0f3u4", ifr_hwaddr={sa_family=ARPHRD_ETHER, sa_data=62:45:b4:f4:6f:9a}}) = 0
+ioctl(5, SIOCGIFMTU, {ifr_name="wlp47s0f3u4", ifr_mtu=1500}) = 0
+ioctl(5, SIOCGIFMAP, {ifr_name="wlp47s0f3u4", ifr_map={mem_start=0, mem_end=0, base_addr=0, irq=0, dma=0, port=0}}) = 0
+ioctl(5, SIOCGIFMAP, {ifr_name="wlp47s0f3u4", ifr_map={mem_start=0, mem_end=0, base_addr=0, irq=0, dma=0, port=0}}) = 0
+ioctl(5, SIOCGIFTXQLEN, {ifr_name="wlp47s0f3u4", ifr_qlen=1000}) = 0
+ioctl(4, SIOCGIFADDR, {ifr_name="wlp47s0f3u4"}) = -1 EADDRNOTAVAIL (Cannot assign requested address)
+close(5)                                = 0
+exit_group(0)                           = ?
++++ exited with 0 +++

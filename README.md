@@ -49,13 +49,17 @@ These are the parameters I'd like to show
 
 ## Display
 
-initially this will just output some rolling format. will have to think
+Initially this will just output some rolling format. will have to think
 about something like a tui to properly place things for readability
 though
 
-
 ## random thoughts
 Is there a faster way to fetch all this data than reading a text file each time?
+
+lots of repetition with a ThingStats that has prev, cur and does math on all the
+fields. I could have something like a generic `Delta` struct that accepts the
+same type twice, does the math between all fields etc.. But this would require
+making everything public in the structs.
 
 ## References
 

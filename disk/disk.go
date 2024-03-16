@@ -2,6 +2,9 @@ package disk
 
 import (
 	"bufio"
+	"container/heap"
+	"fmt"
+	"io/fs"
 	"os"
 	"strconv"
 	"strings"
@@ -40,10 +43,54 @@ type diskStat struct {
 	ms_spent_flushing int // This is the total number of milliseconds spent by all flush requests.
 }
 
-type Stat struct {
-	old    diskStat
-	new    diskStat
-	values statValues
+type statValues struct {
+	major                        float32
+	minor                        float32
+	devname                      string
+	num_reads_completed          float32
+	num_reads_merged             float32
+	num_sectors_read             float32
+	ms_reading                   float32
+	num_writes_completed         float32
+	num_writes_merged            float32
+	num_sectors_written          float32
+	ms_writing                   float32
+	num_io_in_progress           float32
+	ms_doing_io                  float32
+	ms_doing_io_weighted         float32
+	num_discards_completed       float32
+	num_discards_merged          float32
+	num_sectors_discarded        float32
+	ms_spent_discarding          float32
+	num_flush_requests_completed float32
+	ms_spent_flushing            float32
+}
+
+type diskHeap []*statValues
+
+func (h diskHeap) Len() int { return len(h) }
+func (h diskHeap) Less(
+	i, j int,
+) bool {
+	return h[i].num_writes_completed > h[j].num_writes_completed
+}
+func (h diskHeap) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
+func (h *diskHeap) Push(x any)   { *h = append(*h, x.(*statValues)) }
+func (h *diskHeap) Pop() any {
+	old := *h
+	n := len(old)
+	if n == 0 {
+		return nil
+	}
+	x := old[n-1]
+	*h = old[0 : n-1]
+	return x
+}
+
+type DiskInfo struct {
+	old    []*diskStat
+	new    []*diskStat
+	values *diskHeap
 }
 
 type dsfields int
@@ -71,12 +118,57 @@ const (
 	DSFMS_SPENT_FLUSHING
 )
 
-type Disk struct {
-	sick int
+const diskstats = "/proc/diskstats"
+
+func getDiskStatPath() string {
+	return diskstats
 }
 
-func diskparse(s string) (*DiskStat, error) {
-	ds := new(DiskStat)
+func (disks *DiskInfo) estimate() {
+	if len(disks.old) == 0 {
+		return
+	}
+
+	prev := disks.old
+	cur := disks.new
+
+	disks.values = new(diskHeap)
+	heap.Init(disks.values)
+
+	for i := range cur {
+		d := new(statValues)
+		d.devname = cur[i].devname
+		d.major = float32(cur[i].major)
+		d.minor = float32(cur[i].minor)
+		d.num_reads_completed = float32(cur[i].num_reads_completed - prev[i].num_reads_completed)
+		d.num_reads_merged = float32(cur[i].num_reads_merged - prev[i].num_reads_merged)
+		d.num_sectors_read = float32(cur[i].num_sectors_read - prev[i].num_sectors_read)
+		d.ms_reading = float32(cur[i].ms_reading - prev[i].ms_reading)
+		d.num_writes_completed = float32(cur[i].num_writes_completed - prev[i].num_writes_completed)
+		d.num_writes_merged = float32(cur[i].num_writes_merged - prev[i].num_writes_merged)
+		d.num_sectors_written = float32(cur[i].num_sectors_written - prev[i].num_sectors_written)
+		d.ms_writing = float32(cur[i].ms_writing - prev[i].ms_writing)
+		d.num_io_in_progress = float32(cur[i].num_io_in_progress - prev[i].num_io_in_progress)
+		d.ms_doing_io = float32(cur[i].ms_doing_io - prev[i].ms_doing_io)
+		d.ms_doing_io_weighted = float32(cur[i].ms_doing_io_weighted - prev[i].ms_doing_io_weighted)
+		d.num_discards_completed = float32(
+			cur[i].num_discards_completed - prev[i].num_discards_completed,
+		)
+		d.num_discards_merged = float32(cur[i].num_discards_merged - prev[i].num_discards_merged)
+		d.num_sectors_discarded = float32(
+			cur[i].num_sectors_discarded - prev[i].num_sectors_discarded,
+		)
+		d.ms_spent_discarding = float32(cur[i].ms_spent_discarding - prev[i].ms_spent_discarding)
+		d.num_flush_requests_completed = float32(
+			cur[i].num_flush_requests_completed - prev[i].num_flush_requests_completed,
+		)
+		d.ms_spent_flushing = float32(cur[i].ms_spent_flushing - prev[i].ms_spent_flushing)
+		heap.Push(disks.values, d)
+	}
+}
+
+func diskparse(s string) (*diskStat, error) {
+	ds := new(diskStat)
 
 	fields := strings.Fields(s)
 
@@ -96,22 +188,111 @@ func diskparse(s string) (*DiskStat, error) {
 			}
 		case DSFNAME:
 			ds.devname = fields[fieldnum]
+		case DSFNUM_READS_COMPLETED:
+			ds.num_reads_completed, err = strconv.Atoi(fields[fieldnum])
+			if err != nil {
+				return nil, err
+			}
+		case DSFNUM_READS_MERGED:
+			ds.num_reads_merged, err = strconv.Atoi(fields[fieldnum])
+			if err != nil {
+				return nil, err
+			}
+		case DSFNUM_SECTORS_READ:
+			ds.num_sectors_read, err = strconv.Atoi(fields[fieldnum])
+			if err != nil {
+				return nil, err
+			}
+		case DSFMS_READING:
+			ds.ms_reading, err = strconv.Atoi(fields[fieldnum])
+			if err != nil {
+				return nil, err
+			}
+		case DSFNUM_WRITES_COMPLETED:
+			ds.num_writes_completed, err = strconv.Atoi(fields[fieldnum])
+			if err != nil {
+				return nil, err
+			}
+		case DSFNUM_WRITES_MERGED:
+			ds.num_writes_merged, err = strconv.Atoi(fields[fieldnum])
+			if err != nil {
+				return nil, err
+			}
+		case DSFNUM_SECTORS_WRITTEN:
+			ds.num_sectors_written, err = strconv.Atoi(fields[fieldnum])
+			if err != nil {
+				return nil, err
+			}
+		case DSFMS_WRITING:
+			ds.ms_writing, err = strconv.Atoi(fields[fieldnum])
+			if err != nil {
+				return nil, err
+			}
+		case DSFNUM_IO_IN_PROGRESS:
+			ds.num_io_in_progress, err = strconv.Atoi(fields[fieldnum])
+			if err != nil {
+				return nil, err
+			}
+		case DSFMS_DOING_IO:
+			ds.ms_doing_io, err = strconv.Atoi(fields[fieldnum])
+			if err != nil {
+				return nil, err
+			}
+		case DSFMS_DOING_IO_WEIGHTED:
+			ds.ms_doing_io_weighted, err = strconv.Atoi(fields[fieldnum])
+			if err != nil {
+				return nil, err
+			}
+		case DSFNUM_DISCARDS_COMPLETED:
+			ds.num_discards_completed, err = strconv.Atoi(fields[fieldnum])
+			if err != nil {
+				return nil, err
+			}
+		case DSFNUM_DISCARDS_MERGED:
+			ds.num_discards_merged, err = strconv.Atoi(fields[fieldnum])
+			if err != nil {
+				return nil, err
+			}
+		case DSFNUM_SECTORS_DISCARDED:
+			ds.num_sectors_discarded, err = strconv.Atoi(fields[fieldnum])
+			if err != nil {
+				return nil, err
+			}
+		case DSFMS_SPENT_DISCARDING:
+			ds.ms_spent_discarding, err = strconv.Atoi(fields[fieldnum])
+			if err != nil {
+				return nil, err
+			}
+		case DSFNUM_FLUSH_REQUESTS_COMPLETED:
+			ds.num_flush_requests_completed, err = strconv.Atoi(fields[fieldnum])
+			if err != nil {
+				return nil, err
+			}
+		case DSFMS_SPENT_FLUSHING:
+			ds.ms_spent_flushing, err = strconv.Atoi(fields[fieldnum])
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
 	return ds, nil
 }
 
-// Create an array od diskStat and return it
-func DiskStats() ([]*diskStat, error) {
-	var ds []*diskStat
-
-	f, err := os.Open("/proc/diskstats")
+// Get a diskinfo and update it with new stats
+func DiskStats(di *DiskInfo) (*DiskInfo, error) {
+	f, err := os.Open(getDiskStatPath())
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
+	return getDiskStats(di, f)
+}
 
+func getDiskStats(di *DiskInfo, f fs.File) (*DiskInfo, error) {
+	var ds []*diskStat
+
+	di.old = di.new
 	scanner := bufio.NewScanner(f)
 	for linenum := 0; scanner.Scan(); linenum++ {
 		line := scanner.Text()
@@ -121,5 +302,31 @@ func DiskStats() ([]*diskStat, error) {
 			return nil, err
 		}
 	}
-	return ds, nil
+	di.new = ds
+	di.estimate()
+	return di, nil
+}
+
+func (disks *DiskInfo) InfoPrint(num_disks int) string {
+	if len(disks.old) == 0 {
+		return ""
+	}
+	total_disks := disks.values.Len()
+	disk_limit := max(min(total_disks, num_disks), 0)
+
+	if num_disks == 0 {
+		return "zero"
+	}
+
+	var sb strings.Builder
+	for i := 0; i < disk_limit; i++ {
+		disk := heap.Pop(disks.values).(*statValues)
+		sb.WriteString(
+			fmt.Sprintf("%s %.0f\t",
+				disk.devname,
+				disk.num_writes_completed,
+			))
+	}
+
+	return sb.String()
 }

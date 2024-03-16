@@ -135,6 +135,16 @@ const (
 	MEMDirectMap1G
 )
 
+var scale int
+
+func init() {
+	scale = 1024
+}
+
+func SetScale(v int) {
+	scale = v
+}
+
 func (m *Meminfo) InfoPrint() string {
 	// free/total cache buff
 	scale := 1024

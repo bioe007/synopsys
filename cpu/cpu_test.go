@@ -26,7 +26,28 @@ func TestCPUStats(t *testing.T) {
 }
 
 func TestCPUHeapPopEmpty(t *testing.T) {
-	t.Error("not implemented")
+	c1 := new(CpuStat)
+	c2 := new(CpuStat)
+	c3 := new(CpuStat)
+	cstats := new(calculatedstats)
+	heap.Init(cstats)
+	heap.Push(cstats, c2)
+	heap.Push(cstats, c1)
+	heap.Push(cstats, c3)
+
+	if 3 != len(*cstats) {
+		t.Errorf("SHould have three elements: 3 != %d", len(*cstats))
+	}
+
+	// It seems like the consensus is golang should panic if we pop from an
+	// empty list. So here I'll just assert the length is right.
+	_ = heap.Pop(cstats)
+	_ = heap.Pop(cstats)
+	_ = heap.Pop(cstats)
+
+	if 0 != len(*cstats) {
+		t.Errorf("SHould have no elements: 0 != %d", len(*cstats))
+	}
 }
 
 func TestCPUHeapOrder(t *testing.T) {
@@ -52,8 +73,12 @@ func TestCPUHeapOrder(t *testing.T) {
 	heap.Push(cstats, c1)
 	heap.Push(cstats, c3)
 
-	c := cstats.Pop().(*CpuStat)
+	c := heap.Pop(cstats).(*CpuStat)
 	if c.nr != "1" {
 		t.Errorf("heap order failure: expected 1, got %s", c.nr)
+	}
+	c = heap.Pop(cstats).(*CpuStat)
+	if c.nr != "3" {
+		t.Errorf("heap order failure: expected 3, got %s", c.nr)
 	}
 }

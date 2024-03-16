@@ -167,7 +167,7 @@ func (cpu *CpuInfo) InfoPrint(num_cpus int) string {
 	num_cpus = min(cpu.Siblings, num_cpus)
 	if len(cpu.OldStats) == 0 {
 		// TODO: - be smarter than just skipping it the first time through?
-		return ""
+		return "-mt-"
 	}
 
 	var sb strings.Builder
