@@ -1,11 +1,11 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -16,7 +16,6 @@ import (
 	"github.com/bioe007/synopsys/uptime"
 )
 
-// var scaleMap = map[rune]int{}
 var scaleMap = map[rune]int{
 	'k': 1024,
 	'K': 1000,
@@ -28,24 +27,46 @@ var scaleMap = map[rune]int{
 	'T': 1000 * 1000 * 1000 * 1000,
 }
 
-// main stuff getting done
+const usage = `Usage:
+    synopsys [options]
+
+Options:
+    -i, --interval  [integer]   Duration in seconds between updates, default 1.
+    -c, --cpu       [integer]   Max number of CPU you want to see output.
+                                Default 8.
+    -d, --disks     [integer]   Max number of disks you want to see output.
+                                Default 8.
+    -m, --memscale  [kKmMgGtT]  Units of memory to display, in kilo/Kibi etc.
+                                Default is megabytes.
+`
+
 func main() {
-	// Argument(s) is only an int to agjust frequency
-	var num_seconds int
-	var err error
-	if len(os.Args) < 2 {
-		num_seconds = 1
-	} else {
-		num_seconds, err = strconv.Atoi(os.Args[1])
-		if err != nil {
-			usage()
-		}
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "%s\n", usage)
 	}
 
+	var (
+		num_disks, num_cpu, num_seconds int
+		mem_scale                       string
+	)
+	flag.IntVar(&num_seconds, "interval", 1,
+		"The number of seconds to wait between updates.")
+	flag.IntVar(&num_seconds, "i", 1,
+		"The number of seconds to wait between updates.")
+	flag.IntVar(&num_cpu, "cpu", 8, "How many 'hot' CPU to display")
+	flag.IntVar(&num_cpu, "c", 8, "How many 'hot' CPU to display")
+	flag.IntVar(&num_disks, "disks", 8, "How many 'hot' CPU to display")
+	flag.IntVar(&num_disks, "d", 8, "How many 'hot' CPU to display")
+	flag.StringVar(&mem_scale, "memory", "m", "Choose how to scale memory")
+	flag.StringVar(&mem_scale, "m", "m", "Choose how to scale memory")
+	flag.Parse()
+
 	// TODO - parse this as an arg
-	memory.SetScale(scaleMap['m'])
+	ms := []rune(mem_scale)
+	memory.SetScale(scaleMap[ms[0]])
 
 	ticker := time.NewTicker(time.Duration(num_seconds) * time.Second)
+	var err error
 	go func() {
 		c := new(cpu.CpuInfo)
 		disks := new(disk.DiskInfo)
@@ -69,8 +90,6 @@ func main() {
 			if err != nil {
 				log.Fatal("disk average failure", err)
 			}
-			// TODO
-			// fmt.Println("Got disks: ", len(disks))
 
 			ut, err := uptime.Read_uptime()
 			if err != nil {
@@ -81,9 +100,9 @@ func main() {
 				ut.HoursMinutes(),
 				ld.InfoPrint(),
 				// TODO - accept as parameter
-				c.InfoPrint(14),
+				c.InfoPrint(num_cpu),
 				m.InfoPrint(),
-				disks.InfoPrint(18),
+				disks.InfoPrint(num_disks),
 			)
 		}
 	}()
@@ -98,9 +117,4 @@ func main() {
 		done <- true
 	}()
 	<-done
-}
-
-func usage() {
-	fmt.Printf("Usage: %s [<interval>]", os.Args[0])
-	os.Exit(0)
 }
