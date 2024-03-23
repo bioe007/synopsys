@@ -1,7 +1,9 @@
 package disk
 
 import (
+	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"testing"
 	"testing/fstest"
@@ -53,7 +55,7 @@ func TestInfoPrint(t *testing.T) {
 
 	s := di.InfoPrint(1)
 	// if s != "dev 1" {
-	if s != "dev 1" {
+	if s != "dev wc: 1\t sw: 0\t rc: 1\tsr: 0\n" {
 		t.Errorf("infoprint failed %s != dev 1", s)
 	}
 }
@@ -277,6 +279,34 @@ func TestDiskParseFailsNonNumeric(t *testing.T) {
 	}
 }
 
+func TestIsDisk(t *testing.T) {
+	FILES := fstest.MapFS{
+		"diskstats": {
+			Data: []byte(
+				`0 0 dev0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+                 1 1 dev1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1`),
+		},
+		"sys/block": {
+			Mode: fs.ModeDir,
+		},
+		"sys/block/dev0": {
+			Data: []byte(""),
+		},
+		"sys/block/dev1": {
+			Data: []byte(""),
+		},
+	}
+	disks, _ := FILES.ReadDir("sys/block")
+
+	setupReportableDisks(disks)
+	if !isDisk("dev0") {
+		t.Error("disk setup not working", "dev0")
+	}
+	if !isDisk("dev1") {
+		t.Error("disk setup not working", "dev1")
+	}
+}
+
 func TestGetDiskStats(t *testing.T) {
 	di := new(DiskInfo)
 
@@ -284,9 +314,23 @@ func TestGetDiskStats(t *testing.T) {
 		"diskstats": {
 			Data: []byte(
 				`0 0 dev0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
-    1 1 dev1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1`),
+                 1 1 dev1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1`),
+		},
+		"sys/block": {
+			Mode: fs.ModeDir,
+		},
+		"sys/block/dev0": {
+			Data: []byte(""),
+		},
+		"sys/block/dev1": {
+			Data: []byte(""),
 		},
 	}
+
+	disks, _ := FILES.ReadDir("sys/block")
+
+	setupReportableDisks(disks)
+	fmt.Println("isdisk?", isDisk("dev0"))
 
 	f, _ := FILES.Open("diskstats")
 	di2, err := getDiskStats(di, f)

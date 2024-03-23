@@ -286,13 +286,29 @@ func diskparse(s string) (*diskStat, error) {
 	return ds, nil
 }
 
-func diskIsDisk(s string) bool {
-	disks, err := os.ReadDir("/sys/block/")
-	if err != nil {
-		log.Fatal(err)
-	}
+// Store list of disks we want to report on, it should be populated the first
+// time anything checks if a disk exists.
+var reportableDisks []string
+
+// TODO: Add some ability to configure the reportable disks
+func setupReportableDisks(disks []fs.DirEntry) {
 	for _, disk := range disks {
-		if s == disk.Name() {
+		reportableDisks = append(reportableDisks, disk.Name())
+	}
+}
+
+// Determine if the disk is one we want to report on or not. By default skips
+// all partitions.
+func isDisk(s string) bool {
+	if len(reportableDisks) == 0 {
+		f, err := os.ReadDir("/sys/block")
+		if err != nil {
+			log.Fatal("Can't configure disks", err)
+		}
+		setupReportableDisks(f)
+	}
+	for _, v := range reportableDisks {
+		if s == v {
 			return true
 		}
 	}
@@ -320,7 +336,7 @@ func getDiskStats(di *DiskInfo, f fs.File) (*DiskInfo, error) {
 		if err != nil {
 			return nil, err
 		}
-		if diskIsDisk(curdisk.devname) {
+		if isDisk(curdisk.devname) {
 			ds = append(ds, curdisk)
 		}
 	}
