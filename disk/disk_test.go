@@ -1,7 +1,6 @@
 package disk
 
 import (
-	"fmt"
 	"io"
 	"io/fs"
 	"os"
@@ -330,7 +329,6 @@ func TestGetDiskStats(t *testing.T) {
 	disks, _ := FILES.ReadDir("sys/block")
 
 	setupReportableDisks(disks)
-	fmt.Println("isdisk?", isDisk("dev0"))
 
 	f, _ := FILES.Open("diskstats")
 	di2, err := getDiskStats(di, f)
