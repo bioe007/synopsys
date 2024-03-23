@@ -5,15 +5,24 @@ import (
 	"container/heap"
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
 	"strconv"
 	"strings"
 )
 
+// TODO Yes, this code/comment mix is fugly.. right now it's just easier to keep
+// the docs from kernel next to the fields.
 type diskStat struct {
-	major               int
-	minor               int
-	devname             string
+	major   int
+	minor   int
+	devname string
+
+	// The values for reads and writes are in terms of `sectors` which can be
+	// assumbed to be 512 bytes. The kernel reports them this way regardless of
+	// how the filesystem or underlying disk controller is accounting.
+	// The most reliable way to check this would be `blockdev --getss <dev>`
+	// which is just using IOCTL to get the sector size.
 	num_reads_completed int // This is the total number of reads completed successfully.
 	num_reads_merged    int // , field 6 -- # of writes merged (unsigned long)
 	// Reads and writes which are adjacent to each other may be merged for efficiency. Thus two 4K reads may become one 8K read before it is ultimately handed to the disk, and so it will be counted (and queued) as only one I/O. This field lets you know how often this was done.
@@ -69,9 +78,7 @@ type statValues struct {
 type diskHeap []*statValues
 
 func (h diskHeap) Len() int { return len(h) }
-func (h diskHeap) Less(
-	i, j int,
-) bool {
+func (h diskHeap) Less(i, j int) bool {
 	return h[i].num_writes_completed > h[j].num_writes_completed
 }
 func (h diskHeap) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
@@ -279,6 +286,19 @@ func diskparse(s string) (*diskStat, error) {
 	return ds, nil
 }
 
+func diskIsDisk(s string) bool {
+	disks, err := os.ReadDir("/sys/block/")
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, disk := range disks {
+		if s == disk.Name() {
+			return true
+		}
+	}
+	return false
+}
+
 // Get a diskinfo and update it with new stats
 func DiskStats(di *DiskInfo) (*DiskInfo, error) {
 	f, err := os.Open(getDiskStatPath())
@@ -297,9 +317,11 @@ func getDiskStats(di *DiskInfo, f fs.File) (*DiskInfo, error) {
 	for linenum := 0; scanner.Scan(); linenum++ {
 		line := scanner.Text()
 		curdisk, err := diskparse(line)
-		ds = append(ds, curdisk)
 		if err != nil {
 			return nil, err
+		}
+		if diskIsDisk(curdisk.devname) {
+			ds = append(ds, curdisk)
 		}
 	}
 	di.new = ds
@@ -322,9 +344,15 @@ func (disks *DiskInfo) InfoPrint(num_disks int) string {
 	for i := 0; i < disk_limit; i++ {
 		disk := heap.Pop(disks.values).(*statValues)
 		sb.WriteString(
-			fmt.Sprintf("%s %.0f\t",
+			fmt.Sprintf("%s wc: %.0f\t sw: %.0f\t rc: %.0f\tsr: %.0f\n",
 				disk.devname,
 				disk.num_writes_completed,
+				// FIXME - 'magic' number here converting sectors to KB, only
+				// temporary and see comments above
+				disk.num_sectors_written/2,
+				disk.num_reads_completed,
+				// FIXME - 'magic' number here converting sectors to KB
+				disk.num_sectors_read/2,
 			))
 	}
 
