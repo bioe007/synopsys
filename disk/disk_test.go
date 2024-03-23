@@ -300,27 +300,3 @@ func TestGetDiskStats(t *testing.T) {
 		t.Errorf("got di2[1].devname: %s", di2.new[1].devname) // di2.new[1].devname)
 	}
 }
-
-// 	di.old = make([]*diskStat, 2)
-// 	di.new = make([]*diskStat, 2)
-//
-// 	disk00 := diskStat{
-// 		0, 0, "dev", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-// 	}
-// 	disk01 := disk00
-//
-// 	disk10 := diskStat{
-// 		1, 1, "dev", 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-// 	}
-// 	disk11 := disk10
-//
-// 	di.new[0] = &disk00
-// 	di.new[1] = &disk01
-// 	di.old[0] = &disk10
-// 	di.old[1] = &disk11
-//
-// 	di.estimate()
-// 	t.Errorf("not impl: %+v - len %d", di.values, len(*di.values))
-//
-//     di2 := getDiskStats(di, "foo")
-// }
