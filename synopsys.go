@@ -38,6 +38,7 @@ Options:
                                 Default 8.
     -m, --memscale  [kKmMgGtT]  Units of memory to display, in kilo/Kibi etc.
                                 Default is megabytes.
+    -D, --disk-only             Show only disk activity
 `
 
 func main() {
@@ -48,6 +49,7 @@ func main() {
 	var (
 		num_disks, num_cpu, num_seconds int
 		mem_scale                       string
+		disk_only                       bool
 	)
 	flag.IntVar(&num_seconds, "interval", 1,
 		"The number of seconds to wait between updates.")
@@ -59,6 +61,7 @@ func main() {
 	flag.IntVar(&num_disks, "d", 8, "How many 'hot' CPU to display")
 	flag.StringVar(&mem_scale, "memory", "m", "Choose how to scale memory")
 	flag.StringVar(&mem_scale, "m", "m", "Choose how to scale memory")
+	flag.BoolVar(&disk_only, "D", false, "Only show disk activity")
 	flag.Parse()
 
 	// TODO - parse this as an arg
@@ -95,15 +98,19 @@ func main() {
 			if err != nil {
 				log.Fatal("Unable to read uptime")
 			}
-			fmt.Printf(
-				"up:%s %s cpu:%s\nmem: %s\ndisks:%s\n",
-				ut.HoursMinutes(),
-				ld.InfoPrint(),
-				// TODO - accept as parameter
-				c.InfoPrint(num_cpu),
-				m.InfoPrint(),
-				disks.InfoPrint(num_disks),
-			)
+			if !disk_only {
+				fmt.Printf(
+					"up:%s %s cpu:%s\nmem: %s\ndisks:%s\n",
+					ut.HoursMinutes(),
+					ld.InfoPrint(),
+					// TODO - accept as parameter
+					c.InfoPrint(num_cpu),
+					m.InfoPrint(),
+					disks.InfoPrint(num_disks),
+				)
+			} else {
+				fmt.Printf("disks:\n%s\n", disks.InfoPrint(num_disks))
+			}
 		}
 	}()
 
